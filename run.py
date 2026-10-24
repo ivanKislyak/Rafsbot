@@ -1,7 +1,10 @@
 import asyncio
 import os
+import logging
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
+from aiogram.filters import CommandStart
+from aiogram.types import Message
 from rafs_errors import MissingBotTokenError
 
 load_dotenv()
@@ -12,8 +15,18 @@ if not BOT_TOKEN:
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
+@dp.message(CommandStart())
+async def cmd_start(message: Message):
+    await message.answer('Привет')
+
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    logging.basicConfig(level=logging.INFO)
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print('Exit')
