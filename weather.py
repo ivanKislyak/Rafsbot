@@ -19,15 +19,16 @@ CITIES = [
     ("Ивантеевка", 55.97111, 37.92083),
     ("Ижевск", 56.85225, 53.19862),
     ("Каменское", 48.51716, 34.60617),
-    ("Кишинёв", 47.00902, 28.85938),
-    ("Koblenz", 50.35357, 7.57883),
+    ("Кобленц", 50.35357, 7.57883),
     ("Красноярск", 56.03742, 92.93136),
+    ("Майкоп", 44.60778, 40.10278),
     ("Мариуполь", 47.09514, 37.54131),
     ("Москва", 55.75204, 37.61781),
     ("Николаев", 46.97625, 31.99296),
     ("Новосибирск", 55.02259, 82.93175),
     ("Семей", 50.42064, 80.25025),
     ("Сыктывкар", 61.66393, 50.81630),
+    ("Тюмень", 57.1522, 65.5272),
     ("Химки", 55.90010, 37.42848),
 ]
 
@@ -131,19 +132,24 @@ def format_weather_message(results):
             continue
         locations[location_id] = result
 
-    lines = ["🌤 Погода сейчас", ""]
-    successful_cities = 0
+    city_lines = []
+    unavailable_lines = []
     for index, (city, latitude, longitude) in enumerate(CITIES):
         try:
             current = locations[index]["current"]
-            lines.append(format_city_weather(city, current))
-            successful_cities += 1
+            line = format_city_weather(city, current)
+            city_lines.append((current["temperature_2m"], line))
         except (KeyError, TypeError, ValueError, AttributeError):
             logger.exception("Weather unavailable for %s (%s, %s)", city, latitude, longitude)
-            lines.append(f"{city}: данные временно недоступны")
+            unavailable_lines.append(f"{city}: данные временно недоступны")
 
-    if successful_cities == 0:
+    if not city_lines:
         return UNAVAILABLE_MESSAGE
+
+    city_lines.sort(key=lambda item: item[0], reverse=True)
+    lines = ["🌤 Погода сейчас", ""]
+    lines.extend(line for temperature, line in city_lines)
+    lines.extend(unavailable_lines)
     return "\n".join(lines)
 
 

@@ -27,11 +27,11 @@ async def cmd_weather(message: Message):
 
 @dp.message(or_f(Command('help'), F.text.lower().strip().in_(constants.HELP_COMMANDS)))
 async def get_help(message: Message):
-    await message.answer('Привет, я бот RAFS. Сейчас у меня мало команд. Скоро добавим показ погоды')
+    await message.answer('Привет, я бот RAFS. Сейчас у меня мало команд. Можно узнать погоду - /weather')
 
-@dp.message(F.photo)
-async def get_photo(message: Message):
-    await message.reply_dice()
+# @dp.message(F.photo)
+# async def get_photo(message: Message):
+#     await message.reply_dice()
 
 async def main():
     await dp.start_polling(bot)

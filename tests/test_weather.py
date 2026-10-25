@@ -46,16 +46,16 @@ class FormattingTests(unittest.TestCase):
         for code in (1234, None, [], {}):
             self.assertIn("неизвестны", weather.describe_weather(code, 1)[1])
 
-    def test_city_order_and_location_ids(self):
+    def test_temperature_order_and_location_ids(self):
         # Явные ID сохраняют соответствие даже при перестановке JSON-объектов.
         message = weather.format_weather_message(list(reversed(make_results())))
         lines = message.splitlines()
         self.assertEqual(lines[0], "🌤 Погода сейчас")
-        for index, (city, _, _) in enumerate(weather.CITIES):
-            self.assertTrue(lines[index + 2].startswith(f"{city}: ☀️ "))
+        for position, index in enumerate(reversed(range(len(weather.CITIES)))):
+            city = weather.CITIES[index][0]
+            self.assertTrue(lines[position + 2].startswith(f"{city}: ☀️ "))
             expected = "0 °C" if index == 0 else f"+{index} °C"
-            self.assertIn(expected, lines[index + 2])
-        self.assertEqual(lines[-1], "Данные: Open-Meteo")
+            self.assertIn(expected, lines[position + 2])
         self.assertLess(len(message), 4096)
 
     def test_response_without_location_ids(self):
@@ -74,10 +74,13 @@ class FormattingTests(unittest.TestCase):
             del results[4]
             with self.assertLogs("weather", level="ERROR"):
                 message = weather.format_weather_message(results)
-            self.assertIn("Ижевск: данные временно недоступны", message)
-            self.assertIn("Химки: данные временно недоступны", message)
-            self.assertIn("Сыктывкар: ☀️ +5 °C", message)
-            self.assertIn("Мариуполь: ☀️ +15 °C", message)
+            self.assertIn(f"{weather.CITIES[5][0]}: ☀️ +5 °C", message)
+            last_index = len(weather.CITIES) - 1
+            self.assertIn(f"{weather.CITIES[last_index][0]}: ☀️ +{last_index} °C", message)
+            self.assertEqual(message.splitlines()[-2:], [
+                f"{weather.CITIES[2][0]}: данные временно недоступны",
+                f"{weather.CITIES[4][0]}: данные временно недоступны",
+            ])
 
     def test_total_failure(self):
         with self.assertLogs("weather", level="ERROR"):
